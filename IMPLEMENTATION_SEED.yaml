@@ -7,8 +7,7 @@ goal: Build the V1 MVP of Bring Your Own Key In Your Bed (BYOKIYB), a standalone
 task_type: code
 brownfield_context:
   project_type: greenfield
-  context_references:
-  - SEED.yaml
+  context_references: []
   existing_patterns: []
   existing_dependencies: []
 product_naming:
@@ -86,3 +85,80 @@ verification_commands:
 metadata:
   source_design_seed: /Users/junho/.ouroboros/seeds/seed_acb79ca4b7a6.yaml
   created_for: junho-baek/byokiyb
+ontology_schema:
+  name: BYOKIYBMVP
+  description: Domain model for V1 local-first mobile credential handoff with CLI,
+    intake session, .env.local destination, and agent-safe metadata.
+  fields:
+  - name: requestId
+    type: string
+    description: Opaque one-time intake request id
+    required: true
+  - name: provider
+    type: string
+    description: Provider identifier such as replicate
+    required: true
+  - name: keyName
+    type: string
+    description: Whitelisted destination env key such as REPLICATE_API_TOKEN
+    required: true
+  - name: projectPath
+    type: string
+    description: Project root receiving the local env file
+    required: true
+  - name: destination
+    type: string
+    description: Project-scoped destination such as .env.local
+    required: true
+  - name: expiresAt
+    type: string
+    description: Short-lived intake session expiry timestamp
+    required: true
+  - name: status
+    type: string
+    description: created, pending, written, conflict, expired, revoked, replayed,
+      or failed
+    required: true
+  - name: fingerprint
+    type: string
+    description: Non-secret fingerprint for verification without disclosure
+    required: false
+  - name: rawValueReturned
+    type: boolean
+    description: Must always be false for agent-facing surfaces
+    required: true
+  - name: mcpMetadata
+    type: object
+    description: Agent-safe metadata only, never raw values
+    required: false
+  - name: hermesSkill
+    type: object
+    description: Skill package metadata and safe usage instructions
+    required: false
+evaluation_principles:
+- name: SecretSafety
+  description: Raw values are never exposed to agent-facing surfaces, logs, docs,
+    or status output
+  weight: 1.0
+- name: MVPCompleteness
+  description: CLI, mobile intake, .env.local writer, status/revoke/list, docs, MCP
+    schema, and Hermes skill packaging exist or are explicitly scaffolded
+  weight: 0.9
+- name: ObservableVerification
+  description: Acceptance criteria can be verified with dummy-only commands/tests
+  weight: 0.85
+- name: LocalFirstScope
+  description: Implementation stays local-first and avoids cloud sync or paid hosted
+    services
+  weight: 0.8
+exit_conditions:
+- name: TestsPass
+  description: Workflow can terminate when test/typecheck/build commands pass
+  criteria: All selected verification commands pass or documented equivalent exists
+- name: DummyReplicateFlowWorks
+  description: Workflow can terminate when dummy Replicate key intake writes to .env.local
+    without exposing value
+  criteria: Scripted or tested dummy flow proves safe metadata and local write
+- name: ScopeContained
+  description: Workflow can terminate when non-goals remain out of implementation
+  criteria: No cloud sync, no real credentials, no OwnCanvas integration in V1

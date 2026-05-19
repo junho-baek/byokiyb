@@ -1,0 +1,76 @@
+goal: >
+  Build the V1 MVP of Bring Your Own Key In Your Bed (BYOKIYB), a standalone
+  local-first credential handoff tool for agent-operated projects. V1 must provide
+  a CLI named `byokiyb` that can create a short-lived one-time mobile intake
+  session, serve a mobile web page for entering one provider key, write the value
+  only to a project-scoped `.env.local`, and expose only safe status/metadata to
+  agents. Do not request, embed, print, or commit any real credential. All tests
+  must use dummy sentinel values only.
+
+task_type: code
+brownfield_context:
+  project_type: greenfield
+  context_references:
+    - SEED.yaml
+  existing_patterns: []
+  existing_dependencies: []
+
+product_naming:
+  full_name: Bring Your Own Key In Your Bed
+  short_name: BYOKIYB
+  cli_name: byokiyb
+  tagline: Paste keys from bed, agents only see safe status.
+
+constraints:
+  - Standalone open-source project, separate from OwnCanvas.
+  - V1 targets macOS/Linux developer machines.
+  - Use a small, auditable stack. Prefer Node.js/TypeScript with minimal dependencies unless the executor proposes a simpler working stack.
+  - CLI binary name must be `byokiyb`.
+  - V1 reference command: `byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN --ttl 10m`.
+  - The CLI must support `intake`, `status`, `list`, `revoke`, and `doctor` or clearly documented equivalents.
+  - Mobile intake must be reachable from localhost and optionally from a LAN/Tailscale/tunnel host supplied by the operator.
+  - Intake must be short-lived, one-time, and scoped to exactly one whitelisted key.
+  - Do not put raw values in URLs, query params, logs, stdout, stderr, issue comments, docs, fixtures, tests, MCP responses, or status output.
+  - Agents may receive only provider, key name, destination, request id, status, createdAt, expiresAt, and a non-secret fingerprint/presence indicator.
+  - `.env.local` writer must create/update atomically, preserve unrelated lines/comments, reject NUL/newline values in V1, and require explicit overwrite if key already exists.
+  - `.env.local` and local runtime state must be ignored by Git.
+  - MCP server and Hermes skill packaging are in-scope as skeleton/docs in V1 if full implementation would risk delaying the CLI/web/env path.
+  - Cloud sync, paid hosted service, production deployment, multi-user auth, OAuth token refresh, and encrypted/keychain storage are non-goals for V1.
+  - OwnCanvas integration is a future consumer and must not be implemented here.
+
+acceptance_criteria:
+  - `npm test` or the chosen test command passes with dummy-only tests.
+  - `npm run typecheck` or equivalent passes if TypeScript is used.
+  - `byokiyb --help` documents the V1 workflow.
+  - `byokiyb intake --project <tmpdir> --env .env.local --provider replicate --key REPLICATE_API_TOKEN --ttl 10m --json` returns stable JSON with request id, URL/path instructions, destination metadata, expiry, and no raw value.
+  - A test or scripted check can submit a dummy value to the intake endpoint and verify `.env.local` contains `REPLICATE_API_TOKEN=<dummy>` without printing the dummy value in CLI/status output.
+  - Existing key conflict fails unless explicit overwrite is set.
+  - Expired or revoked sessions reject submission.
+  - Replay after successful submission fails.
+  - Status/list output never includes raw submitted values and includes only safe metadata/fingerprint.
+  - `git check-ignore .env.local` passes in the repository and runtime state paths are ignored.
+  - No committed file contains dummy sentinel leak strings except intentional test assertions that prove redaction.
+  - README includes mobile/Tailscale usage, threat model, and warning not to paste credentials into chat.
+  - A Hermes skill package or draft `skills/byokiyb/SKILL.md` explains safe agent usage and never instructs agents to request raw values in chat.
+  - If MCP is not fully implemented in V1, the repo includes a concrete MCP tool schema/spec for `request_secret`, `check_secret_available`, `list_secret_metadata`, and `revoke_secret_request` that never return raw values.
+
+implementation_slices:
+  - Bootstrap package, CLI entrypoint, tests, README, gitignore.
+  - Intake session model: one-time code, TTL, revoke, replay prevention, safe metadata.
+  - `.env.local` credential store: atomic create/update, conflict/overwrite, redaction, permissions where supported.
+  - Local web server and mobile intake page: code verification, masked input, POST-only save, no-store/no-referrer headers.
+  - CLI commands wired to session/server/status/revoke/list/doctor.
+  - MCP schema/server skeleton and Hermes skill packaging.
+  - Final verification with dummy Replicate key workflow.
+
+verification_commands:
+  - npm install
+  - npm test
+  - npm run typecheck
+  - npm run build
+  - git check-ignore .env.local
+  - node dist/cli.js --help || npm exec -- byokiyb --help
+
+metadata:
+  source_design_seed: /Users/junho/.ouroboros/seeds/seed_acb79ca4b7a6.yaml
+  created_for: junho-baek/byokiyb

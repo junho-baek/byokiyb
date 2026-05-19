@@ -1,0 +1,207 @@
+goal: 'Design a standalone open-source project named Bring Your Own Key In Your Bed (BYOKIYB). It is a local-first
+  handoff system for agent-operated projects: a CLI starts a short-lived one-time
+  mobile web intake session; a user enters provider access material in the browser;
+  the tool writes only to project-scoped local destinations such as .env.local; agents
+  receive only presence/status/metadata, never the raw value. IMPORTANT: this is a
+  design/spec task only; no real credential, token, API key, password, app secret,
+  or private value is required or available. Do not request any real value. Include
+  CLI commands, web gateway flow, local store adapters, MCP server tools that never
+  return raw values, Hermes skill packaging, threat model, repo structure, implementation
+  slices, acceptance criteria, and user instructions. Separate from OwnCanvas; OwnCanvas
+  is only a future consumer. V1 MUST include CLI plus mobile one-time intake over
+  localhost/Tailscale and .env.local writer. Prefer Korean summary and formal English
+  seed/spec.'
+product_naming:
+  full_name: Bring Your Own Key In Your Bed
+  short_name: BYOKIYB
+  cli_name: byokiyb
+  tagline: Paste keys from bed, agents only see safe status.
+  naming_note: The original working name BYOK Gateway is retained only as category language; the product name is BYOKIYB.
+task_type: code
+brownfield_context:
+  project_type: greenfield
+  context_references: []
+  existing_patterns: []
+  existing_dependencies: []
+constraints:
+- Design/spec task only; do not request or require real credentials, tokens, API keys,
+  passwords, app secrets, or private values
+- Standalone open-source project named Bring Your Own Key In Your Bed (BYOKIYB)
+- Separate from OwnCanvas; OwnCanvas is only a future consumer
+- V1 targets macOS/Linux developer machines
+- V1 MUST include CLI plus mobile one-time intake over localhost QR and optional Tailscale
+  URL
+- V1 MUST include .env.local writer
+- CLI reference command is byokiyb intake --env .env.local --provider openai
+- Provider placeholder env var name is OPENAI_API_KEY
+- .env.local conflict behavior defaults to detecting existing key and requiring explicit
+  overwrite
+- MCP tools must never return raw values
+- Agent-facing MCP metadata limited to provider, envVarNames, destination, status,
+  createdAt, expiresAt, fingerprint
+- Include Korean summary and formal English seed/spec
+- Include CLI commands, web gateway flow, local store adapters, MCP server tools,
+  Hermes skill packaging, threat model, repo structure, implementation slices, acceptance
+  criteria, and user instructions
+- Cloud sync, paid services, and production deployment are non-goals
+- Assume a single local user
+- Use existing repository runtime, package manager, and architectural patterns if
+  a repository exists; avoid new dependencies unless required
+acceptance_criteria:
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Seed/spec defines the Bring Your Own Key In Your Bed (BYOKIYB) V1 reference workflow end to
+  end.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for CLI intake command starts a short-lived one-time session and produces
+  stable observable JSON output.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Mobile intake reachable through localhost QR and optional Tailscale
+  URL.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Dummy-only submission writes OPENAI_API_KEY to .env.local.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Raw submitted value never exposed to agents, logs, MCP responses,
+  or status output.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Existing OPENAI_API_KEY in .env.local detected and submit fails
+  unless explicit overwrite requested.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Expired intake sessions reject late submissions.
+- MCP status tool returns only provider, envVarNames, destination, status, createdAt,
+  expiresAt, fingerprint
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for MCP tool names and schemas specified, including byok_gateway.status.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Hermes skill package includes install, use, and threat-model instructions.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Threat model documents raw-value boundaries and non-goals.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Repo structure and implementation slices specified.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Invalid input produces non-zero failures.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Acceptance tests use dummy values only and produce reproducible
+  artifacts.
+ontology_schema:
+  name: BYOKIYBSpec
+  description: Domain model for a local-first BYOK intake session, local destination
+    write, and agent-safe status handoff.
+  fields:
+  - name: projectName
+    type: string
+    description: Open-source project name, Bring Your Own Key In Your Bed (BYOKIYB)
+    required: true
+  - name: provider
+    type: string
+    description: Access provider identifier such as openai
+    required: true
+  - name: envVarNames
+    type: array
+    description: Placeholder environment variable names such as OPENAI_API_KEY
+    required: true
+  - name: destination
+    type: string
+    description: Project-scoped local destination such as .env.local
+    required: true
+  - name: sessionId
+    type: string
+    description: Opaque one-time intake session identifier
+    required: true
+  - name: connectionModes
+    type: array
+    description: Supported browser connection modes, localhost QR and optional Tailscale
+      URL
+    required: true
+  - name: ttl
+    type: string
+    description: Short-lived session duration such as 10m
+    required: true
+  - name: status
+    type: string
+    description: Lifecycle state such as created, submitted, written, expired, conflict,
+      or failed
+    required: true
+  - name: createdAt
+    type: string
+    description: Session creation timestamp
+    required: true
+  - name: expiresAt
+    type: string
+    description: Session expiry timestamp
+    required: true
+  - name: fingerprint
+    type: string
+    description: Non-secret fingerprint derived from submitted material for verification
+      without disclosure
+    required: true
+  - name: overwrite
+    type: boolean
+    description: Whether explicit overwrite was requested for existing destination
+      keys
+    required: true
+  - name: rawValueReturned
+    type: boolean
+    description: Must always be false for agent-facing surfaces
+    required: true
+  - name: mcpMetadata
+    type: object
+    description: Agent-safe provider, env var names, destination, status, timestamps,
+      and fingerprint
+    required: true
+  - name: hermesPackage
+    type: object
+    description: Skill packaging content for install, usage, and threat model
+    required: true
+  - name: threatModel
+    type: object
+    description: Security assumptions, raw-value boundaries, mitigations, and non-goals
+    required: true
+evaluation_principles:
+- name: SecretSafety
+  description: Raw access material is never requested in the spec and never exposed
+    outside local write paths
+  weight: 1.0
+- name: LocalFirstScope
+  description: Design stays local-first with project-scoped destinations and no cloud
+    sync or paid services
+  weight: 0.9
+- name: V1Completeness
+  description: Spec covers CLI, mobile intake, .env.local writer, MCP metadata, Hermes
+    packaging, threat model, repo structure, slices, and user instructions
+  weight: 0.9
+- name: ObservableVerification
+  description: Acceptance criteria are testable through stable commands, JSON, non-zero
+    failures, and reproducible artifacts
+  weight: 0.85
+- name: ConservativeMVP
+  description: Scope remains small, explicit, and aligned to the locked OpenAI .env.local
+    reference workflow
+  weight: 0.8
+- name: AgentBoundaryClarity
+  description: MCP and agent-facing surfaces expose only presence, status, and metadata
+  weight: 0.95
+exit_conditions:
+- name: SpecComplete
+  description: Workflow can terminate when the formal Seed/spec contains all required
+    Bring Your Own Key In Your Bed (BYOKIYB) V1 sections
+  criteria: All required sections are present and concrete
+- name: AcceptanceLocked
+  description: Workflow can terminate when observable acceptance criteria are pinned
+    to dummy-only end-to-end behavior
+  criteria: Criteria cover CLI session, mobile submit, .env.local write, conflict,
+    expiry, MCP metadata, and Hermes packaging
+- name: SafetySatisfied
+  description: Workflow can terminate when no real secrets are requested or exposed
+  criteria: Spec explicitly prohibits real credential collection and raw-value return
+- name: ScopeContained
+  description: Workflow can terminate when non-goals and future-consumer boundaries
+    are clear
+  criteria: Cloud sync, paid services, production deployment, and OwnCanvas integration
+    are marked out of V1
+metadata:
+  seed_id: seed_acb79ca4b7a6
+  version: 1.0.0
+  created_at: '2026-05-19T07:19:49.449553Z'
+  ambiguity_score: 0.128
+  interview_id: interview_1d9a33773ac24f02
+  parent_seed_id: seed_2eadf609c6c0

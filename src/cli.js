@@ -23,7 +23,7 @@ function ttlToMs(ttl = "10m") {
   return Number(m[1]) * ({ s: 1000, m: 60000, h: 3600000 }[m[2]]);
 }
 function help() {
-  return `BYOKIYB — Bring Your Own Key In Your Bed\n\nUsage:\n  byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN [--ttl 10m] [--host 127.0.0.1] [--json] [--offer-file /tmp/byokiyb-offer.json]\n  byokiyb guide <manifest-id>\n  byokiyb status <request-id> [--json]\n  byokiyb list [--json]\n  byokiyb revoke <request-id> [--json]\n  byokiyb doctor\n\nAgents receive only status/metadata. Raw values must be entered only in the mobile web page, never in chat.\n`;
+  return `BYOKIYB — Bring Your Own Key In Your Bed\n\nUsage:\n  byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN [--ttl 10m] [--host 127.0.0.1] [--json] [--offer-file /tmp/byokiyb-offer.json]\n  byokiyb intake --project <path> --env .env.local --provider instagram-meta --keys KEY_ONE,KEY_TWO [--ttl 10m] [--host 127.0.0.1] [--json]\n  byokiyb guide <manifest-id>\n  byokiyb status <request-id> [--json]\n  byokiyb list [--json]\n  byokiyb revoke <request-id> [--json]\n  byokiyb doctor\n\nAgents receive only status/metadata. Raw values must be entered only in the mobile web page, never in chat.\n`;
 }
 async function main() {
   const { command, opts } = parseArgs(process.argv.slice(2));
@@ -38,17 +38,19 @@ async function main() {
   if (command === "intake") {
     const provider = opts.provider;
     const keyName = opts.key;
+    const keyNames = opts.keys ? String(opts.keys).split(",").map((key) => key.trim()).filter(Boolean) : undefined;
     const projectPath = opts.project ?? process.cwd();
     const envFile = opts.env ?? ".env.local";
-    if (!provider || !keyName) throw new Error("--provider and --key are required");
-    const { session, code } = await createSession({ projectPath, envFile, provider, keyName, ttlMs: ttlToMs(opts.ttl), hostHint: opts.host ?? "127.0.0.1" });
+    if (!provider || (!keyName && (!keyNames || keyNames.length === 0))) throw new Error("--provider and --key or --keys are required");
+    const { session, code } = await createSession({ projectPath, envFile, provider, keyName, keyNames, ttlMs: ttlToMs(opts.ttl), hostHint: opts.host ?? "127.0.0.1" });
     const { server, port, localUrl } = await startIntakeServer({ session, code, host: opts.host ?? "127.0.0.1", overwrite: Boolean(opts.overwrite) });
     session.port = port; session.localUrl = localUrl; await saveSession(session);
     const output = { ...safeSession(session), localUrl, oneTimeCode: code, instructions: "Open localUrl in the browser and enter the one-time code. Do not paste raw values into chat." };
     if (opts["offer-file"]) {
       await fs.writeFile(opts["offer-file"], redactJson(output), { mode: 0o600 });
     }
-    process.stdout.write(opts.json ? redactJson(output) : `Open: ${localUrl}\nCode: ${code}\nKey: ${keyName}\nDestination: ${envFile}\n`);
+    const keySummary = session.keyNames?.join(",") ?? keyName;
+    process.stdout.write(opts.json ? redactJson(output) : `Open: ${localUrl}\nCode: ${code}\nKeys: ${keySummary}\nDestination: ${envFile}\n`);
     process.stdout.write("BYOKIYB intake server is running. Press Ctrl+C to stop after submission.\n");
     await new Promise((resolve) => server.on("close", resolve));
     return;

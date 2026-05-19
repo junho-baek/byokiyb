@@ -6,15 +6,31 @@ import { assertWritableSecretValue } from "./metadata.js";
 const KEY_PATTERN = /^[A-Z_][A-Z0-9_]*$/;
 
 export async function writeProjectEnvValue({ projectPath, envFile = ".env.local", keyName, value, overwrite = false }) {
+  const result = await writeProjectEnvValues({ projectPath, envFile, entries: [{ keyName, value }], overwrite });
+  return result.entries[0];
+}
+
+export async function writeProjectEnvValues({ projectPath, envFile = ".env.local", entries, overwrite = false }) {
   if (!projectPath) throw new Error("projectPath is required");
-  if (!KEY_PATTERN.test(keyName ?? "")) throw new Error("keyName must be an uppercase environment variable name");
-  assertWritableSecretValue(value);
+  if (!Array.isArray(entries) || entries.length === 0) throw new Error("entries must be a non-empty array");
+  const seen = new Set();
+  for (const entry of entries) {
+    if (!KEY_PATTERN.test(entry?.keyName ?? "")) throw new Error("keyName must be an uppercase environment variable name");
+    if (seen.has(entry.keyName)) throw new Error(`duplicate keyName: ${entry.keyName}`);
+    seen.add(entry.keyName);
+    assertWritableSecretValue(entry.value);
+  }
   const projectRoot = await resolveExistingDirectory(projectPath);
   const destination = resolveProjectDestination(projectRoot, envFile);
-  const existing = await readIfExists(destination);
-  const { content, existed, replaced } = upsertEnvLine(existing, keyName, value, overwrite);
-  await atomicWriteFile(destination, content, { mode: 0o600 });
-  return { destination, keyName, status: existed ? "updated" : "created", present: true, replaced };
+  let existing = await readIfExists(destination);
+  const results = [];
+  for (const entry of entries) {
+    const next = upsertEnvLine(existing, entry.keyName, entry.value, overwrite);
+    existing = next.content;
+    results.push({ destination, keyName: entry.keyName, status: next.existed ? "updated" : "created", present: true, replaced: next.replaced });
+  }
+  await atomicWriteFile(destination, existing, { mode: 0o600 });
+  return { destination, entries: results };
 }
 
 export async function resolveExistingDirectory(projectPath) {

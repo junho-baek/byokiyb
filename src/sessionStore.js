@@ -4,15 +4,38 @@ import { createHash, randomInt } from "node:crypto";
 import { createRequestId, toAgentSafeMetadata } from "./metadata.js";
 import { resolveExistingDirectory, resolveProjectDestination } from "./envFile.js";
 
-export async function createSession({ projectPath, envFile, provider, keyName, ttlMs, hostHint, port }) {
+export async function createSession({ projectPath, envFile, provider, keyName, keyNames, slots, ttlMs, hostHint, port }) {
   const projectRoot = await resolveExistingDirectory(projectPath);
   const destination = resolveProjectDestination(projectRoot, envFile);
   const now = new Date();
   const requestId = createRequestId();
   const code = `${randomInt(100000, 999999)}`;
-  const session = { requestId, codeHash: hashCode(code), provider, keyName, projectPath: projectRoot, envFile, destination, status: "pending", createdAt: now.toISOString(), expiresAt: new Date(now.getTime() + ttlMs).toISOString(), present: false, rawValueReturned: false, hostHint, port };
+  const normalizedSlots = normalizeSlots({ provider, keyName, keyNames, slots });
+  const session = {
+    requestId,
+    codeHash: hashCode(code),
+    provider,
+    keyName: normalizedSlots.length === 1 ? normalizedSlots[0].keyName : undefined,
+    keyNames: normalizedSlots.map((slot) => slot.keyName),
+    slots: normalizedSlots.map((slot) => ({ ...slot, present: false, rawValueReturned: false })),
+    projectPath: projectRoot,
+    envFile,
+    destination,
+    status: "pending",
+    createdAt: now.toISOString(),
+    expiresAt: new Date(now.getTime() + ttlMs).toISOString(),
+    present: false,
+    rawValueReturned: false,
+    hostHint,
+    port
+  };
   await saveSession(session);
   return { session, code };
+}
+function normalizeSlots({ provider, keyName, keyNames, slots }) {
+  if (Array.isArray(slots) && slots.length > 0) return slots.map((slot) => ({ provider: slot.provider ?? provider, keyName: slot.keyName, label: slot.label }));
+  const names = Array.isArray(keyNames) && keyNames.length > 0 ? keyNames : [keyName];
+  return names.filter(Boolean).map((name) => ({ provider, keyName: name }));
 }
 export async function stateDir() { const dir = path.join(process.cwd(), ".byokiyb", "requests"); await fs.mkdir(dir, { recursive: true, mode: 0o700 }); return dir; }
 export async function sessionPath(requestId) { return path.join(await stateDir(), `${requestId}.json`); }

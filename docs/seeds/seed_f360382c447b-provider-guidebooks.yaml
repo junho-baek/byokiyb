@@ -1,0 +1,184 @@
+goal: 'Create an implementation Seed for BYOKIYB Provider Guidebooks and Prefilled
+  Intake UX in /Users/junho/project/byokiyb. Avoid asking for any private values;
+  this is specification only. Current product: BYOKIYB is a local-first setup assistant
+  with CLI, mobile web form, .env.local writer, status/list/revoke, safe metadata,
+  MCP schema draft, and Hermes skill draft. New feature: make setup easier with recipe-driven
+  guidebooks. V1 scope: add a generic recipe engine plus one OwnCanvas-oriented instagram-meta
+  recipe. The recipe explains dashboard steps, external links, env variable names,
+  destination path, copy instructions, and what not to paste in chat. The CLI can
+  show a guide, start a prefilled intake from a recipe, and write an offer JSON with
+  Telegram-ready Markdown link, one-time code, destination summary, and user instructions.
+  The web form shows a guide panel for the selected recipe/key. Default auth remains
+  link plus numeric code. Link-only is documented as an optional trusted-local future/config
+  mode, not default. Trusted device/passkey are future design notes requiring HTTPS/stable
+  origin. Acceptance: tests for guide rendering, offer JSON, recipe parsing, no private
+  value in outputs, existing tests still pass. Publishable issue slices should be
+  included. Formal English seed/spec content.'
+task_type: code
+brownfield_context:
+  project_type: greenfield
+  context_references: []
+  existing_patterns: []
+  existing_dependencies: []
+constraints:
+- Local-first deterministic behavior
+- Specification only, no private values requested
+- V1 includes generic recipe engine plus one `instagram-meta` recipe
+- Reuse existing repository runtime, package manager, CLI, web form, and architectural
+  patterns
+- Avoid new dependencies unless required by acceptance criteria
+- Default auth remains intake link plus numeric one-time code
+- Link-only auth is documented only as optional trusted-local future/config mode
+- Trusted device and passkey support are future design notes requiring HTTPS and stable
+  origin
+- Generated outputs must not contain real env values, secrets, tokens, or private-looking
+  values
+- Live Meta dashboard and link verification is out of scope for V1 and must be captured
+  as a follow-up issue
+- Formal English seed/spec content
+- Single local user operating through explicit command arguments and stable artifacts
+acceptance_criteria:
+- '`byokiyb guide instagram-meta` prints deterministic guide content to stdout and
+  exits 0'
+- Unknown recipe ID exits non-zero
+- Malformed recipe file exits non-zero
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Missing required recipe fields exit non-zero.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Detected private-looking values in generated outputs cause non-zero
+  failure.
+- '`byokiyb intake start --recipe instagram-meta --offer-json <path>` writes stable
+  offer JSON to `<path>` and prints a short success summary'
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Offer JSON contains `schema_version`, `recipe_id`, `destination_path`,
+  `intake_url`, `one_time_code`, `telegram_markdown_link`, `destination_summary`,
+  `user_instructions`, and `safety_warnings`.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Offer JSON persists the intake link and numeric one-time code as
+  shareable auth artifacts while forbidding real env values/secrets.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Web form renders a guide panel for the selected recipe/key and shows
+  prefilled destination/key summary deterministically.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Recipe parsing covered by tests.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Guide rendering covered by tests.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Offer JSON artifact fields covered by tests.
+- No-private-value output safety is covered by tests
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Existing tests still pass.
+- A command/API check returns stable observable output or artifacts proving the original
+  requirement for Publishable issue slices included.
+ontology_schema:
+  name: ProviderGuidebookRecipe
+  description: Recipe model for provider-specific setup guidance, intake prefilling,
+    safe output generation, and deterministic CLI/web rendering in BYOKIYB.
+  fields:
+  - name: schema_version
+    type: string
+    description: Version of the recipe and offer contract
+    required: true
+  - name: recipe_id
+    type: string
+    description: Stable recipe identifier such as `instagram-meta`
+    required: true
+  - name: provider_name
+    type: string
+    description: Human-readable provider name for guide rendering
+    required: true
+  - name: audience
+    type: string
+    description: Intended setup context, such as OwnCanvas Instagram Meta setup
+    required: true
+  - name: dashboard_steps
+    type: array
+    description: Ordered setup steps shown to the user
+    required: true
+  - name: external_links
+    type: array
+    description: Public provider documentation or dashboard links included in the
+      guide
+    required: true
+  - name: env_variables
+    type: array
+    description: Environment variable names to collect without storing real values
+      in generated guidance
+    required: true
+  - name: destination_path
+    type: string
+    description: Target BYOKIYB path where collected values will be written
+    required: true
+  - name: copy_instructions
+    type: array
+    description: Instructions for copying values into the local intake form
+    required: true
+  - name: safety_warnings
+    type: array
+    description: Warnings about what not to paste in chat or generated artifacts
+    required: true
+  - name: intake_url
+    type: string
+    description: Generated prefilled intake URL for the selected recipe/key
+    required: true
+  - name: one_time_code
+    type: string
+    description: Numeric one-time code used with the intake link
+    required: true
+  - name: telegram_markdown_link
+    type: string
+    description: Telegram-ready Markdown link to share the intake
+    required: true
+  - name: destination_summary
+    type: string
+    description: Short summary of the destination path and intended write target
+    required: true
+  - name: user_instructions
+    type: string
+    description: Plain English instructions included in the offer JSON
+    required: true
+  - name: follow_up_issues
+    type: array
+    description: Publishable follow-up slices including live Meta dashboard/link validation
+    required: true
+evaluation_principles:
+- name: Determinism
+  description: Commands, tests, and artifacts produce stable reproducible outputs
+  weight: 0.25
+- name: Safety
+  description: No real env values, secrets, tokens, or private-looking values appear
+    in guide output, offer JSON, or chat-facing instructions
+  weight: 0.25
+- name: ContractClarity
+  description: CLI behavior and offer JSON fields are exact, testable, and documented
+  weight: 0.2
+- name: BrownfieldFit
+  description: Implementation follows existing BYOKIYB runtime, architecture, and
+    dependency patterns
+  weight: 0.15
+- name: ScopeControl
+  description: V1 stays local-first and excludes live Meta validation, cloud sync,
+    paid services, and production deployment
+  weight: 0.15
+exit_conditions:
+- name: V1Complete
+  description: Workflow can terminate when deterministic guide rendering, intake start,
+    offer JSON generation, web guide panel behavior, invalid-input failures, safety
+    checks, and existing tests all pass
+  criteria: All acceptance criteria are satisfied locally
+- name: InvalidInputRejected
+  description: Workflow can terminate failure paths when bad recipes or unsafe outputs
+    are rejected observably
+  criteria: Unknown recipe, malformed recipe, missing required fields, and private-looking
+    generated values exit non-zero
+- name: FollowUpsCaptured
+  description: Workflow can terminate without live Meta validation when it is recorded
+    as a publishable follow-up issue
+  criteria: Follow-up issue slice exists for current Meta dashboard/link verification
+metadata:
+  seed_id: seed_f360382c447b
+  version: 1.0.0
+  created_at: '2026-05-19T08:35:59.514087Z'
+  ambiguity_score: 0.157
+  interview_id: interview_048cb4459f8e409a
+  parent_seed_id: seed_7f1fd90dd3a7

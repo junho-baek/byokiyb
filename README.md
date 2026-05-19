@@ -1,6 +1,8 @@
 # Bring Your Own Key In Your Bed (BYOKIYB)
 
-Local-first mobile credential handoff for agent-operated projects.
+**Stop pasting secrets into AI chats. Send keys to your local project from bed.**
+
+BYOKIYB is a local-first mobile setup assistant for agent-operated projects: your phone gets the friendly form, your project gets the `.env.local` entry, and agents get only safe status.
 
 - CLI name: `byokiyb`
 - V1: CLI + mobile one-time intake + `.env.local` writer

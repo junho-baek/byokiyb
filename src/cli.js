@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { promises as fs } from "node:fs";
 import { createSession, listSessions, loadSession, safeSession, saveSession } from "./sessionStore.js";
 import { startIntakeServer } from "./server.js";
 import { redactJson } from "./metadata.js";
@@ -21,7 +22,7 @@ function ttlToMs(ttl = "10m") {
   return Number(m[1]) * ({ s: 1000, m: 60000, h: 3600000 }[m[2]]);
 }
 function help() {
-  return `BYOKIYB — Bring Your Own Key In Your Bed\n\nUsage:\n  byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN [--ttl 10m] [--host 127.0.0.1] [--json]\n  byokiyb status <request-id> [--json]\n  byokiyb list [--json]\n  byokiyb revoke <request-id> [--json]\n  byokiyb doctor\n\nAgents receive only status/metadata. Raw values must be entered only in the mobile web page, never in chat.\n`;
+  return `BYOKIYB — Bring Your Own Key In Your Bed\n\nUsage:\n  byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN [--ttl 10m] [--host 127.0.0.1] [--json] [--offer-file /tmp/byokiyb-offer.json]\n  byokiyb status <request-id> [--json]\n  byokiyb list [--json]\n  byokiyb revoke <request-id> [--json]\n  byokiyb doctor\n\nAgents receive only status/metadata. Raw values must be entered only in the mobile web page, never in chat.\n`;
 }
 async function main() {
   const { command, opts } = parseArgs(process.argv.slice(2));
@@ -37,6 +38,9 @@ async function main() {
     const { server, port, localUrl } = await startIntakeServer({ session, code, host: opts.host ?? "127.0.0.1", overwrite: Boolean(opts.overwrite) });
     session.port = port; session.localUrl = localUrl; await saveSession(session);
     const output = { ...safeSession(session), localUrl, oneTimeCode: code, instructions: "Open localUrl in the browser and enter the one-time code. Do not paste raw values into chat." };
+    if (opts["offer-file"]) {
+      await fs.writeFile(opts["offer-file"], redactJson(output), { mode: 0o600 });
+    }
     process.stdout.write(opts.json ? redactJson(output) : `Open: ${localUrl}\nCode: ${code}\nKey: ${keyName}\nDestination: ${envFile}\n`);
     process.stdout.write("BYOKIYB intake server is running. Press Ctrl+C to stop after submission.\n");
     await new Promise((resolve) => server.on("close", resolve));

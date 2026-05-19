@@ -30,7 +30,7 @@ BYOKIYB protects against accidental exposure through chat, agent prompts, stdout
 ## Commands
 
 ```bash
-byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN --ttl 10m --json
+byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN --ttl 10m --json --offer-file /tmp/byokiyb-offer.json
 byokiyb status <request-id> --json
 byokiyb list --json
 byokiyb revoke <request-id> --json

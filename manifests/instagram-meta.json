@@ -1,0 +1,63 @@
+{
+  "id": "instagram-meta",
+  "title": "Instagram / Meta starter setup-slot manifest",
+  "purpose": "Starter hints for discovering the Meta and Instagram ENV slots this project may need.",
+  "envSlots": [
+    {
+      "name": "META_APP_ID",
+      "label": "Meta App ID",
+      "description": "The app identifier from your Meta developer app.",
+      "required": true,
+      "providerHint": {
+        "provider": "Meta",
+        "dashboardUrl": "https://developers.facebook.com/apps/",
+        "docsUrl": "https://developers.facebook.com/docs/development/create-an-app/",
+        "loginRequired": true,
+        "difficulty": "medium",
+        "resistance": "Meta may ask you to confirm business or app details before the app value is visible."
+      }
+    },
+    {
+      "name": "META_APP_SECRET",
+      "label": "Meta App Secret",
+      "description": "The app secret from the Meta developer app basic settings.",
+      "required": true,
+      "providerHint": {
+        "provider": "Meta",
+        "dashboardUrl": "https://developers.facebook.com/apps/",
+        "docsUrl": "https://developers.facebook.com/docs/development/create-an-app/app-dashboard/basic-settings/",
+        "loginRequired": true,
+        "difficulty": "medium",
+        "resistance": "You may need an app admin role, and Meta may require password re-entry before showing the secret."
+      }
+    },
+    {
+      "name": "INSTAGRAM_ACCESS_TOKEN",
+      "label": "Instagram Access Token",
+      "description": "A token authorized for the Instagram or Graph API scopes used by this project.",
+      "required": true,
+      "providerHint": {
+        "provider": "Meta",
+        "dashboardUrl": "https://developers.facebook.com/tools/explorer/",
+        "docsUrl": "https://developers.facebook.com/docs/instagram-platform/",
+        "loginRequired": true,
+        "difficulty": "hard",
+        "resistance": "Token generation depends on app mode, permissions, and the Instagram account connection state."
+      }
+    },
+    {
+      "name": "INSTAGRAM_BUSINESS_ACCOUNT_ID",
+      "label": "Instagram Business Account ID",
+      "description": "The Instagram business account identifier connected to a Facebook Page.",
+      "required": true,
+      "providerHint": {
+        "provider": "Meta",
+        "dashboardUrl": "https://developers.facebook.com/tools/explorer/",
+        "docsUrl": "https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/",
+        "loginRequired": true,
+        "difficulty": "medium",
+        "resistance": "The account must be a business or creator account connected to a Facebook Page."
+      }
+    }
+  ]
+}

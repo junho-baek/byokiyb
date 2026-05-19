@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import { createSession, listSessions, loadSession, safeSession, saveSession } from "./sessionStore.js";
 import { startIntakeServer } from "./server.js";
 import { redactJson } from "./metadata.js";
+import { getManifest, renderManifestGuide } from "./manifest.js";
 
 function parseArgs(argv) {
   const [command, ...rest] = argv;
@@ -22,12 +23,18 @@ function ttlToMs(ttl = "10m") {
   return Number(m[1]) * ({ s: 1000, m: 60000, h: 3600000 }[m[2]]);
 }
 function help() {
-  return `BYOKIYB — Bring Your Own Key In Your Bed\n\nUsage:\n  byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN [--ttl 10m] [--host 127.0.0.1] [--json] [--offer-file /tmp/byokiyb-offer.json]\n  byokiyb status <request-id> [--json]\n  byokiyb list [--json]\n  byokiyb revoke <request-id> [--json]\n  byokiyb doctor\n\nAgents receive only status/metadata. Raw values must be entered only in the mobile web page, never in chat.\n`;
+  return `BYOKIYB — Bring Your Own Key In Your Bed\n\nUsage:\n  byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN [--ttl 10m] [--host 127.0.0.1] [--json] [--offer-file /tmp/byokiyb-offer.json]\n  byokiyb guide <manifest-id>\n  byokiyb status <request-id> [--json]\n  byokiyb list [--json]\n  byokiyb revoke <request-id> [--json]\n  byokiyb doctor\n\nAgents receive only status/metadata. Raw values must be entered only in the mobile web page, never in chat.\n`;
 }
 async function main() {
   const { command, opts } = parseArgs(process.argv.slice(2));
   if (!command || command === "--help" || command === "help") { process.stdout.write(help()); return; }
   if (command === "doctor") { process.stdout.write("ok: byokiyb local-first mode ready\n"); return; }
+  if (command === "guide") {
+    const id = opts._[0];
+    if (!id) throw new Error("guide requires a manifest id");
+    process.stdout.write(renderManifestGuide(await getManifest(id)));
+    return;
+  }
   if (command === "intake") {
     const provider = opts.provider;
     const keyName = opts.key;

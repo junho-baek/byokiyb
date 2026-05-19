@@ -15,7 +15,7 @@ BYOKIYB is not a static provider guidebook library and not a vault replacement. 
 
 1. Inspect the project and determine the exact environment variable slot needed.
 2. Explain what the slot is for in plain language.
-3. Find the current official docs/dashboard links for where the user obtains the value.
+3. Use starter hints or project manifests when available, then find current official docs/dashboard links when needed.
 4. Tell the user whether login is required, how annoying the step is likely to be, and what they should expect.
 5. Start a BYOKIYB intake for the exact project/key/destination.
 6. Send a touchable link plus code/status details, never the raw value.
@@ -27,6 +27,7 @@ BYOKIYB is not a static provider guidebook library and not a vault replacement. 
 - Do not maintain giant hardcoded provider guidebooks as the primary workflow.
 - Prefer live/current official docs or dashboard links when the project needs a provider value.
 - Use static recipes only as starter hints or project manifests, not as the source of truth for every provider.
+- Encourage the user with: `조금만 더 버티면 돼요. 여기까지 완료했어요.`
 - Run `byokiyb intake` for exactly one provider/key/destination at a time unless the project provides a clear setup manifest.
 - Send the user only the local/Tailscale URL, one-time code, key name, destination, expiry, and concise instructions.
 - Verify with `byokiyb status <request-id> --json` or MCP metadata only.

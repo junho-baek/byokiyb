@@ -21,6 +21,16 @@ node src/cli.js intake --project /path/to/project --env .env.local --provider re
 
 Open the returned URL on the same machine, LAN, or Tailscale-accessible browser and enter the one-time code. The submitted value is written to the project-scoped `.env.local`.
 
+## Env slot discovery
+
+BYOKIYB helps agents identify exact environment variable slots before starting a safe intake. Starter manifests are hints, not exhaustive provider guidebooks; actual project context determines which slots are required.
+
+```bash
+node src/cli.js guide instagram-meta
+```
+
+The guide output names the ENV slots, points to starter dashboard/docs hints when available, explains login/difficulty/resistance, and reminds the user to enter private values only through a BYOKIYB intake link. Guidance should never include private values from `.env.local`, runtime environment variables, chat, logs, or status output.
+
 ## Tailscale / mobile use
 
 For mobile operation, run the CLI on your workstation and expose the local server through a trusted path such as Tailscale. Public tunnels should be paired with the one-time code, short TTL, and immediate revoke/stop after use.
@@ -33,6 +43,7 @@ BYOKIYB protects against accidental exposure through chat, agent prompts, stdout
 
 ```bash
 byokiyb intake --project <path> --env .env.local --provider replicate --key REPLICATE_API_TOKEN --ttl 10m --json --offer-file /tmp/byokiyb-offer.json
+byokiyb guide instagram-meta
 byokiyb status <request-id> --json
 byokiyb list --json
 byokiyb revoke <request-id> --json
